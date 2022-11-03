@@ -7,32 +7,157 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model User {
-  id           String         @id @default(auto()) @map("_id") @db.ObjectId
-  email        String         @unique
-  username     String?
-  password     String
-  UserSettings UserSettings[]
+enum Sport {
+  NFL
+  AFL
 }
 
-model UserSettings {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
+enum NFL_TEAMS {
+  ARI
+  ATL
+  BAL
+  BUF
+  CAR
+  CHI
+  CIN
+  CLE
+  DAL
+  DEN
+  DET
+  GB
+  HOU
+  IND
+  JAX
+  KC
+  LAC
+  LAR
+  LV
+  MIA
+  MIN
+  NE
+  NO
+  NYG
+  NYJ
+  PHI
+  PIT
+  SEA
+  SF
+  TB
+  TEN
+  WAS
+}
+
+enum AFL_TEAMS {
+  ADE
+  BRI
+  CAR
+  COL
+  ESS
+  FRE
+  GEE
+  GC
+  GWS
+  HAW
+  MEL
+  NM
+  POR
+  RIC
+  STK
+  SYD
+  WB
+  WC
+}
+
+enum NFL_PLAYER_POSITIONS {
+  QB
+  RB
+  WR
+  TE
+  K
+  DST
+}
+
+enum AFL_PLAYER_POSITIONS {
+  DEF
+  DEF_FWD
+  DEF_MID
+  DEF_RUC
+  MID
+  MID_FWD
+  RUC
+  RUC_FWD
+  FWD
+}
+
+model User {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  email      String   @unique
+  username   String
+  password   String
+  commisoner League[]
+  teams      Team[]
 }
 
 model League {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  name             String
+  commissioner     User           @relation(fields: [userId], references: [id])
+  teams            Team[]
+  userId           String         @db.ObjectId
+  drafts           Draft[]
+  sport            Sport
+  settings         LeagueSettings @relation(fields: [leagueSettingsId], references: [id])
+  leagueSettingsId String         @unique @db.ObjectId
+  standings        Standings      @relation(fields: [standingsId], references: [id])
+  standingsId      String         @unique @db.ObjectId
 }
 
 model Team {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id       String   @id @default(auto()) @map("_id") @db.ObjectId
+  draft    Draft    @relation(fields: [draftId], references: [id])
+  draftId  String   @db.ObjectId
+  user     User     @relation(fields: [userId], references: [id])
+  userId   String   @db.ObjectId
+  league   League   @relation(fields: [leagueId], references: [id])
+  leagueId String   @db.ObjectId
+  players  Player[]
 }
 
 model Player {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id             String           @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  sport          Sport
+  draftSelection DraftSelection[]
+  team           Team?            @relation(fields: [teamId], references: [id])
+  teamId         String?          @db.ObjectId
 }
 
 model LeagueSettings {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  league League?
+}
+
+model Standings {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  league League?
+}
+
+model Draft {
+  id         String           @id @default(auto()) @map("_id") @db.ObjectId
+  league     League           @relation(fields: [leagueId], references: [id])
+  leagueId   String           @db.ObjectId
+  year       String
+  teams      Team[]
+  selections DraftSelection[]
+}
+
+model DraftSelection {
+  id               String  @id @default(auto()) @map("_id") @db.ObjectId
+  draft            Draft?  @relation(fields: [draftId], references: [id])
+  draftId          String? @db.ObjectId
+  round            Int
+  roundSelection   Int
+  overallSelection Int
+  player           Player  @relation(fields: [playerId], references: [id])
+  playerId         String  @db.ObjectId
 }
